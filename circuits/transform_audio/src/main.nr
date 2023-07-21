@@ -1,8 +1,8 @@
-fn main(wav : pub [u8; 4], wav_len: pub u32, zero_offsets: pub [Field; 4]) -> pub [u8; 4] {
-    let mut res: [u8; 4] = wav;
-    for i in 0..4 {
-        if zero_offsets[i] != 0 {
-            res[zero_offsets[i]] = 0;
+fn main(wav: pub [u8; 128], zero_indices: pub [bool; 128]) -> pub [u8; 128] {
+    let mut res: [u8; 128] = wav;
+    for i in 0..128 {
+        if zero_indices[i] {
+            res[i] = 0;
         }
     }
 
@@ -11,8 +11,13 @@ fn main(wav : pub [u8; 4], wav_len: pub u32, zero_offsets: pub [Field; 4]) -> pu
 
 #[test]
 fn test_main_no_zeroing() {
-    let arr: [u8; 4] = [1, 2, 3, 4];
-    let res = main(arr, 4, [0, 0, 0, 0]);
+    let mut arr: [u8; 128] = [0; 128];
+    arr[0] = 1;
+    arr[1] = 2;
+    arr[2] = 3;
+    arr[3] = 4;
+    let mut zero_indices: [bool; 128] = [false; 128];
+    let res = main(arr, zero_indices);
 
     assert(res[0] == 1);
     assert(res[1] == 2);
@@ -22,11 +27,18 @@ fn test_main_no_zeroing() {
 
 #[test]
 fn test_main_zeroing() {
-    let arr: [u8; 4] = [1, 2, 3, 4];
-    let res = main(arr, 4, [1, 0, 0, 0]);
+    let mut arr: [u8; 128] = [0; 128];
+    arr[0] = 1;
+    arr[1] = 2;
+    arr[2] = 3;
+    arr[3] = 4;
+    let mut zero_indices: [bool; 128] = [false; 128];
+    zero_indices[1] = true;
+    zero_indices[2] = true;
+    let res = main(arr, zero_indices);
 
     assert(res[0] == 1);
     assert(res[1] == 0);
-    assert(res[2] == 3);
+    assert(res[2] == 0);
     assert(res[3] == 4);
 }
