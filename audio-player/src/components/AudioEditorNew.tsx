@@ -5,16 +5,16 @@ import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js'; // Assuming the plugin URL is this
 
 
-const AudioEditor = ({ audioFile }: { audioFile: string }) => {
+const AudioEditor = ({ audioUrl, tempFile }: { tempFile: boolean; audioUrl: string | null}) => {
     let index: number = 1;
     return (
-        <WaveAudio index={index} audio_name={audioFile} />
+        <WaveAudio index={index} pathToFile={audioUrl ? audioUrl : "./example.wav"} />
     )
 }
 
 let audioElements: any[] = [];
 
-function WaveAudio(props: { index: number; audio_name: string}) {
+function WaveAudio(props: { index: number; pathToFile: string}) {
     // const waveAudioRef = useRef<WaveSurfer>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioContainerRef = useRef<HTMLDivElement>(null);
@@ -44,8 +44,7 @@ function WaveAudio(props: { index: number; audio_name: string}) {
                 minPxPerSec: 1,
             });
         // audioContainerRef.current = audioElement;
-        const pathToFile = `./${props["audio_name"]}`;
-        waveform.load(pathToFile);
+        waveform.load(props.pathToFile);
         audioElements.push(waveform);
         // waveAudioRef.current = waveform;
 
@@ -68,7 +67,7 @@ function WaveAudio(props: { index: number; audio_name: string}) {
             waveform.destroy();
             audioElements = [];
             };
-        }, [props.audio_name]);
+        }, [props.pathToFile]);
 
     const handleRegionClick = (region: any, event: any) => {
         console.log('Clicked region:', region);
