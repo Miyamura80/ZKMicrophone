@@ -25,9 +25,14 @@ contract AudioRegistry is Ownable {
         verifier = IUltraVerifier(verifierAddress_);
     }
 
+    event MicrophoneRegistered(address indexed micPublicKey);
+
+    event AudioEntryRegistered(address indexed micPublicKey, bytes32 indexed audioHash);
+
     // Called by the hardware developers to register a new microphone
     function registerMicrophone(address micPublicKey) external onlyOwner {
         registeredMicrophones[micPublicKey] = Microphone(micPublicKey);
+        emit MicrophoneRegistered(micPublicKey);
     }
 
     function verifyAudioTransform(bytes calldata proof, bytes32[] calldata publicInputs, bytes calldata signature, bytes32 ipfsCid) external {
@@ -37,6 +42,8 @@ contract AudioRegistry is Ownable {
         require(verifier.verify(proof, publicInputs), "Registry: transform snark must verify.");
 
         audioEntries[publicInputs[3]] = AudioEntry(micPublicKey, ipfsCid);
+
+        emit AudioEntryRegistered(micPublicKey, publicInputs[3]);
     }
 
     function verifySignature(bytes32 hash, bytes memory signature) public pure returns (address) {
