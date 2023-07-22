@@ -1,5 +1,6 @@
 import os
 import re
+import base64
 from flask import Flask, request
 from flask_restful import Resource, Api
 
@@ -67,7 +68,7 @@ class AudioUploadAPI(Resource):
                 return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
             print('Parsed signature: ', signature_str)
 
-            return {'message': 'Audio file uploaded successfully'}, 201
+            return {'message': 'Audio file uploaded successfully', 'edited_audio': '', 'proof': ''}, 201
 
     def allowed_file(self, filename):
         return '.' in filename and \
