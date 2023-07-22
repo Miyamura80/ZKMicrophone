@@ -69,4 +69,8 @@ contract AudioRegistry is Ownable {
             return ecrecover(hash, v, r, s);
         }
     }
+    
+    function audioExists(bytes32 audioHash) external view returns (bool) {
+        return audioEntries[audioHash].publicKey != address(0);
+    }
 }
