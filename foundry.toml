@@ -4,6 +4,7 @@ test = 'contracts/test'
 out = 'contracts/out'
 script = 'contracts/script'
 libs = ['contracts/lib']
+solc = "0.8.19"
 
 [rpc_endpoints]
 goerli = "${GOERLI_RPC_URL}"
