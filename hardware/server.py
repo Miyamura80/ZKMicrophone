@@ -5,6 +5,16 @@ from flask_restful import Resource, Api
 app = Flask(__name__)
 api = Api(app)
 
+home_dir = os.path.expanduser("~")
+run_dir = os.path.join(home_dir, 'run')
+audio_run_dir = os.path.join(run_dir, 'audio_run')
+noir_run_dir = os.path.join(run_dir, 'noir_run')
+
+for d in [audio_run_dir, noir_run_dir]:
+    # Check if the directory exists, and create it if it doesn't
+    if not os.path.exists(d):
+        os.makedirs(d)
+
 class AudioUploadAPI(Resource):
     def post(self):
         # Fetch parameters from body
@@ -24,7 +34,7 @@ class AudioUploadAPI(Resource):
         if file and self.allowed_file(file.filename):
             # save the file
             filename = file.filename # filename = secure_filename(file.filename)
-            filepath = os.path.join('./uploads', filename)
+            filepath = os.path.join(audio_run_dir, filename)
             file.save(filepath)
 
             # bucket size - one line
