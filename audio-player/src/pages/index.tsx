@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
-import MainContent from '../components/MainContent';
-import '../styles/globals.css'
+import Browse from '../components/Browse';
 
 const HomePage = () => {
   const [query, setQuery] = useState('');
@@ -9,7 +8,7 @@ const HomePage = () => {
   return (
     <div>
       <Navbar/>
-      <MainContent query={query} />
+      {/* <Browse /> */}
     </div>
   );
 };
