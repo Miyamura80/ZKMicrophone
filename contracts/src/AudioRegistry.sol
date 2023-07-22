@@ -18,7 +18,7 @@ struct Microphone {
 
 contract AudioRegistry is Ownable {
     IUltraVerifier verifier;
-    mapping(address => Microphone) registeredMicrophones;
+    mapping(address => Microphone) public registeredMicrophones;
     mapping(bytes32 => AudioEntry) public audioEntries;
 
     constructor(address verifierAddress_) {
