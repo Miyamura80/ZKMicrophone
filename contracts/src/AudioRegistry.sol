@@ -18,7 +18,7 @@ struct Microphone {
 
 contract AudioRegistry is Ownable {
     IUltraVerifier verifier;
-    mapping(address => Microphone) registeredMicrophones;
+    mapping(address => Microphone) public registeredMicrophones;
     mapping(bytes32 => AudioEntry) public audioEntries;
 
     constructor(address verifierAddress_) {
@@ -31,7 +31,7 @@ contract AudioRegistry is Ownable {
     }
 
     function verifyAudioTransform(bytes calldata proof, bytes32[] calldata publicInputs, bytes calldata signature, bytes32 ipfsCid) external {
-        // _public_inputs == [hash_full, wav_weights, bleeps, edited_audio_hash_full]
+        // publicInputs == [hash_full, wav_weights, bleeps, edited_audio_hash_full]
         address micPublicKey = verifySignature(publicInputs[0], signature);
         require(registeredMicrophones[micPublicKey].publicKey != address(0), "AudioRegistry: key not registered");
         require(verifier.verify(proof, publicInputs), "Registry: transform snark must verify.");
