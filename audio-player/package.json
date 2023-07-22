@@ -14,6 +14,7 @@
     "@types/node": "20.4.2",
     "@types/react": "18.2.15",
     "@types/react-dom": "18.2.7",
+    "@types/wavesurfer.js": "^6.0.6",
     "autoprefixer": "10.4.14",
     "eslint": "8.45.0",
     "eslint-config-next": "13.4.11",
@@ -23,6 +24,7 @@
     "react-dom": "18.2.0",
     "sass": "^1.64.1",
     "tailwindcss": "3.3.3",
-    "typescript": "5.1.6"
+    "typescript": "5.1.6",
+    "wavesurfer.js": "^7.0.5"
   }
 }

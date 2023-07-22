@@ -1,5 +1,5 @@
 import React from 'react';
-import SoundWave from './SoundWave';
+import WaveAnimation from './WaveAnimation';
 
 interface AudioCardProps {
   imageSrc: string;
@@ -15,7 +15,7 @@ const AudioCard: React.FC<AudioCardProps> = ({ imageSrc, audioSrc, username }) =
         <p className="text-sm font-semibold leading-6 text-gray-900">{username}</p>
         <p className="mt-1 truncate text-xs leading-5 text-gray-500">{audioSrc}</p>
       </div>
-      <SoundWave />
+      <WaveAnimation />
     </div>
   );
 };

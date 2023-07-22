@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
-import Browse from '../components/Browse';
+import AudioEditor from '../components/AudioEditor';
 
 const EditPage = () => {
   const [query, setQuery] = useState('');
 
-  return (
+ return (
     <div>
-      <Navbar/>
-      <Browse />
+    <Navbar/>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+      </div>
+      <AudioEditor/>
     </div>
   );
 };
