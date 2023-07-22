@@ -39,30 +39,22 @@ const EditPage = () => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '40vh',
   };
 
   return (
     <div>
       <Navbar />
-      {/* {audioFile == null && (
+      <div style={centeredDivStyle} className='h-64'></div>
+      <div className='w-full max-w-lg mx-auto'>
+      <  AudioEditor audioFile={
+        audioFile == null ? "example.wav" : audioFile.name } />
+      </div>
+      <div style={centeredDivStyle} className='py-10'>
         <form onSubmit={onFileUpload}>
           <input type="file" onChange={onFileChange} />
-          <button type="submit">Upload</button>
+          {/* <button type="submit">Upload</button> */}
         </form>
-      )
-      } */}
-      {/* {
-        audioFile != null && ( */}
-      <>
-        <div style={centeredDivStyle}></div>
-        {/* <  AudioEditor audioFile={audioFile.name} /> */}
-        <  AudioEditor audioFile={"example.wav"} />
-        <div style={centeredDivStyle}></div>
-      </>
-      )
-      {/* } */}
-
+      </div>
     </div >
   );
 };
