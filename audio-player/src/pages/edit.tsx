@@ -2,6 +2,8 @@ import { ChangeEvent, ChangeEventHandler, FormEvent, useState } from 'react';
 import Navbar from '../components/Navbar';
 import AudioEditor from '../components/AudioEditorNew';
 import ReactDOM from 'react-dom';
+import axios from 'axios';
+
 
 
 const EditPage = () => {
@@ -20,19 +22,23 @@ const EditPage = () => {
   const onFileUpload = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     // TODO: Save to `/public`
-    // const url = 'http://localhost:3000/uploadFile';
-    // const formData = new FormData();
-    // formData.append('file', audioFile);
-    // formData.append('fileName', audioFile.name);
-    // const config = {
-    //   headers: {
-    //     'content-type': 'multipart/form-data',
-    //   },
-    // };
-    // axios.post(url, formData, config).then((response) => {
-    //   console.log(response.data);
-    // });
-
+    const url = 'http://localhost:3000/upload';
+    const formData = new FormData();
+    if (audioFile) {
+    formData.append('file', audioFile);
+    formData.append('fileName', audioFile.name);
+    }
+    const config = {
+      headers: {
+        'content-type': 'multipart/form-data',
+      },
+    };
+    console.log("FORM DATA", formData)
+    axios.post(url, formData, config).then((response) => {
+      console.log(response.data);
+    }).catch((error) => {
+      console.log(error);
+    });
   }
 
   const centeredDivStyle = {
@@ -52,7 +58,7 @@ const EditPage = () => {
       <div style={centeredDivStyle} className='py-10'>
         <form onSubmit={onFileUpload}>
           <input type="file" onChange={onFileChange} />
-          {/* <button type="submit">Upload</button> */}
+          <button type="submit">Upload</button>
         </form>
       </div>
     </div >
