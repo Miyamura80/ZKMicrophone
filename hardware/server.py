@@ -68,7 +68,7 @@ class AudioUploadAPI(Resource):
                 return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
             print('Parsed signature: ', signature_str)
 
-            return {'message': 'Audio file uploaded successfully', 'edited_audio': '', 'proof': ''}, 201
+            return {'message': 'Audio file uploaded successfully', 'edited_audio': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz', 'proof': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz'}, 201
 
     def allowed_file(self, filename):
         return '.' in filename and \
