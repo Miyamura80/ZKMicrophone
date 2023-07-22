@@ -1,0 +1,17 @@
+[profile.default]
+src = 'contracts/src'
+test = 'contracts/test'
+out = 'contracts/out'
+script = 'contracts/script'
+libs = ['contracts/lib']
+solc = "0.8.19"
+
+[rpc_endpoints]
+goerli = "${GOERLI_RPC_URL}"
+op-goerli = "${OP_GOERLI_RPC_URL}"
+
+[etherscan]
+goerli = { key = "", url = "https://api-goerli.etherscan.io/" }
+op-goerli = { key = "", url = "https://api-goerli-optimistic.etherscan.io/" }
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config%
