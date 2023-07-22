@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import AudioEditor from '../components/AudioEditorNew';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
+import IPFSCard from '@/components/IPFSCard';
 
 
 
@@ -65,6 +66,7 @@ const EditPage = () => {
   return (
     <div>
       <Navbar />
+      <IPFSCard imageSrc='' audioSrc='' username='' />
       <div style={centeredDivStyle} className='h-64'></div>
       <div className='w-full max-w-lg mx-auto'>
       <  AudioEditor tempFile={audioFile === null}audioUrl={audioUrl} />

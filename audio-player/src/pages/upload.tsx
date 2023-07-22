@@ -1,3 +1,4 @@
+import IPFSCard from '../components/IPFSCard';
 import React, { useState } from 'react';
 
 const FileUploader: React.FC = () => {
