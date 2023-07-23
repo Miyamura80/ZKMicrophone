@@ -7,7 +7,7 @@ import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 
 import { publicProvider } from 'wagmi/providers/public'
 
-const walletConnectProjectId = 'b45b212d204525704dde4bd05eee22aa'
+const walletConnectProjectId = '78133656167d49ae79272d2a60d3eb0d'
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
     [
@@ -22,25 +22,25 @@ export const config = createConfig({
     autoConnect: true,
     connectors: [
         new MetaMaskConnector({ chains }),
-        new CoinbaseWalletConnector({
-            chains,
-            options: {
-                appName: 'wagmi',
-            },
-        }),
-        new WalletConnectConnector({
-            chains,
-            options: {
-                projectId: walletConnectProjectId,
-            },
-        }),
-        new InjectedConnector({
-            chains,
-            options: {
-                name: 'Injected',
-                shimDisconnect: true,
-            },
-        }),
+        // new CoinbaseWalletConnector({
+        //     chains,
+        //     options: {
+        //         appName: 'wagmi',
+        //     },
+        // }),
+        // new WalletConnectConnector({
+        //     chains,
+        //     options: {
+        //         projectId: walletConnectProjectId,
+        //     },
+        // }),
+        // new InjectedConnector({
+        //     chains,
+        //     options: {
+        //         name: 'Injected',
+        //         shimDisconnect: true,
+        //     },
+        // }),
     ],
     publicClient,
     webSocketPublicClient,
