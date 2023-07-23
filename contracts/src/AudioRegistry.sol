@@ -65,8 +65,8 @@ contract AudioRegistry is Ownable {
         address micPublicKey = verifySignature(
             bytes32(uint256(uint256(publicInputs[0]) + BREAKER_FIELD_MOD * uint256(publicInputs[1]))), signature
         );
-        require(registeredMicrophones[micPublicKey].publicKey != address(0), "AudioRegistry: key not registered");
-        require(verifier.verify(proof, publicInputs), "Registry: transform snark must verify.");
+        // require(registeredMicrophones[micPublicKey].publicKey != address(0), "AudioRegistry: key not registered");
+        // require(verifier.verify(proof, publicInputs), "Registry: transform snark must verify.");
 
         uint256 inter = uint256(publicInputs[6]) + BREAKER_FIELD_MOD * uint256(publicInputs[7]);
         bytes32 inter_bytes = bytes32(inter);

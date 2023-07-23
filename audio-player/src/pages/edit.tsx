@@ -3,8 +3,8 @@ import Navbar from '../components/Navbar';
 import IPFSCard from '../components/IPFSCard';
 import { RainbowConnect } from '../components/RainbowConnect';
 import VerifyTransform from '@/components/VerifyTransform';
-import ReadRegistry from '@/components/ReadRegistry';
 import AudioEditor from '../components/AudioEditor';
+import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 
 export interface TransformResults {
   proof: string;
@@ -51,7 +51,6 @@ const EditPage = () => {
   return (
     <div>
       <Navbar />
-      {/* <IPFSCard imageSrc='' audioSrc='' username='' /> */}
       <RainbowConnect />
       <div style={centeredDivStyle} className='h-64'></div>
       {audioFile && !transformResults &&
@@ -62,9 +61,7 @@ const EditPage = () => {
       {!audioFile &&
         <div style={centeredDivStyle} className='py-10'>
           <form>
-            {/* <form >onSubmit={onFileUpload}> */}
             <input type="file" onChange={onFileChange} />
-            {/* <button type="submit">Upload</button> */}
           </form>
         </div>
       }

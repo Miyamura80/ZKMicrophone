@@ -13,15 +13,19 @@ import {
   polygon,
   optimism,
   arbitrum,
+  goerli,
+  foundry,
   zora,
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 
-const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, zora],
+const { chains, publicClient } = configureChains([
+  mainnet, goerli, foundry
+],
   [
-    alchemyProvider({ apiKey: process.env.ALCHEMY_ID ? process.env.ALCHEMY_ID : "" }),
+    // alchemyProvider({ apiKey: process.env.ALCHEMY_ID ? process.env.ALCHEMY_ID : "" }),
+    alchemyProvider({ apiKey: "9dYGu1LxUcjdAQV2TTULpv0xdm6QYNDw" }),
     publicProvider()
   ]
 );
