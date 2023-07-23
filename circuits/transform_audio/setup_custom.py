@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import copy
+import shutil
+import os
 from argparse import ArgumentParser
 import wave
 import base64
-
 
 
 FIELD_MOD = (
@@ -12,7 +13,7 @@ FIELD_MOD = (
 BREAKER_FIELD_MOD = 147946756881789309620446562439722434560
 BASE = 257
 
-MAX_NOIR_BLEEPS = 250 
+MAX_NOIR_BLEEPS = 25
 
 """
 There is an issue with noir, not allowing integers > 2^128 as inputs, although
@@ -21,6 +22,8 @@ fields should be to ~2^254. I'm doing the classing trick: Split the numbers as:
 
 More precisely this will be BREAKER_FIELD_MOD ~= sqrt(FIELD_MOD).
 """
+
+
 def split_noir_field(x):
     return x % BREAKER_FIELD_MOD, x // BREAKER_FIELD_MOD
 
@@ -53,7 +56,7 @@ def poly_hash_bytes(b__N):
     poly_hash = 0
     base_pow = 1
     for b in b__N:
-        poly_hash = (poly_hash + base_pow * int(b)) % FIELD_MOD 
+        poly_hash = (poly_hash + base_pow * int(b)) % FIELD_MOD
         base_pow = (base_pow * BASE) % FIELD_MOD
 
     return poly_hash
@@ -64,24 +67,35 @@ def parse_args():
     parser.add_argument("--input_wav", type=str, help="wav file of real input")
     parser.add_argument("--output_wav", type=str, help="wav file of edited input")
     parser.add_argument("--bleeps_spec", type=str, help="bleeps spec file")
-    parser.add_argument("--prover_toml_path", type=str, help="prover toml file")
+    parser.add_argument("--prover_toml_name", type=str, help="prover toml name")
     parser.add_argument("--proof_output", type=str, help="proof output file")
     return parser.parse_args()
 
 
-def setup_circuit(input_frames, output_frames, bucket_positions, inp_bleeps, orig_buckets, bucket_size, prover_toml_path):
+def setup_circuit(
+    input_frames,
+    output_frames,
+    bucket_positions,
+    inp_bleeps,
+    orig_buckets,
+    bucket_size,
+    prover_toml_name,
+):
+    prover_toml_path = f"{prover_toml_name}.toml"
     with open(prover_toml_path, "w") as f:
         serial_hash_full = poly_hash_bytes(input_frames)
-        serial_hash_full_start, serial_hash_full_end = split_noir_field(serial_hash_full)
+        serial_hash_full_start, serial_hash_full_end = split_noir_field(
+            serial_hash_full
+        )
 
         serial_hash_sub = poly_hash_bytes(output_frames)
-        serial_hash_sub_start, serial_hash_sub_end = split_noir_field(serial_hash_sub) 
-        
-        wav_values = [] 
+        serial_hash_sub_start, serial_hash_sub_end = split_noir_field(serial_hash_sub)
+
+        wav_values = []
         wav_weights = []
         bleeps = []
         for pb, bleep in zip(bucket_positions, inp_bleeps):
-            wav_values.append(poly_hash_bytes(orig_buckets[pb])) 
+            wav_values.append(poly_hash_bytes(orig_buckets[pb]))
             wav_weights.append(fast_pow_mod(BASE, pb * bucket_size))
             bleeps.append(poly_hash_bytes(bleep))
 
@@ -89,9 +103,13 @@ def setup_circuit(input_frames, output_frames, bucket_positions, inp_bleeps, ori
             bleeps.append(0)
             wav_values.append(0)
             wav_weights.append(0)
-       
-        serial_wav_values_start, serial_wav_values_end = split_noir_field_array(wav_values)
-        serial_wav_weights_start, serial_wav_weights_end = split_noir_field_array(wav_weights)
+
+        serial_wav_values_start, serial_wav_values_end = split_noir_field_array(
+            wav_values
+        )
+        serial_wav_weights_start, serial_wav_weights_end = split_noir_field_array(
+            wav_weights
+        )
         serial_bleeps_start, serial_bleeps_end = split_noir_field_array(bleeps)
 
         circuit_input = f"""hash_full_start = \"{serial_hash_full_start}\"
@@ -104,26 +122,39 @@ bleeps_start = {serial_bleeps_start}
 bleeps_end = {serial_bleeps_end}
 hash_sub_start = \"{serial_hash_sub_start}\"
 hash_sub_end = \"{serial_hash_sub_end}\""""
-        
+
         f.write(circuit_input)
 
 
-def solve_circuit(prover_toml_path, proof_output):
+def solve_circuit(prover_toml_name, proof_output):
     import subprocess
 
     out = subprocess.check_output(
         [
             "nargo",
             "prove",
-            "-p", prover_toml_path,
+            prover_toml_name,
         ]
     )
+
+    shutil.copyfile(os.path.join("proofs", f"{prover_toml_name}.proof"), proof_output)
 
     with open(proof_output, "wb") as f:
         f.write(out)
 
 
-def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
+def verify_circuit(prover_toml_name):
+    import subprocess
+    subprocess.check_call(
+        [
+            "nargo",
+            "verify",
+            prover_toml_name,
+        ]
+    )
+
+
+def work(input_wav, output_wav, bleeps_spec, prover_toml_name, proof_output):
     print("Editing...")
     with wave.open(input_wav, "rb") as wav_file:
         params = wav_file.getparams()
@@ -133,7 +164,7 @@ def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
         bucket_size = int(f.readline())
         positions = [int(x) for x in f.readline().split()]
         bleeps = [base64.b64decode(x) for x in f.readline().split()]
-        
+
         assert len(positions) == len(bleeps)
         assert len(bleeps) <= MAX_NOIR_BLEEPS
         for pos, bleep_array in zip(positions, bleeps):
@@ -150,7 +181,7 @@ def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
 
         new_buckets[i // bucket_size].append(cframe)
 
-    buckets = copy.deepcopy(new_buckets) 
+    buckets = copy.deepcopy(new_buckets)
     for pos, bleep_array in zip(positions, bleeps):
         new_buckets[pos] = [val_in_bytes_is_int for val_in_bytes_is_int in bleep_array]
 
@@ -160,10 +191,15 @@ def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
         wav_file.writeframes(edited_frames)
 
     print("Setting up circuit...")
-    setup_circuit(frames, edited_frames, positions, bleeps, buckets, bucket_size, prover_toml_path)
-    
+    setup_circuit(
+        frames, edited_frames, positions, bleeps, buckets, bucket_size, prover_toml_name
+    )
+
     print("Proving circuit...")
-    solve_circuit(prover_toml_path, proof_output)
+    solve_circuit(prover_toml_name, proof_output)
+        
+    print("Verifying circuit...")
+    verify_circuit(prover_toml_name)
 
     print("Done!")
 
@@ -176,7 +212,7 @@ def main(args=None):
         args.input_wav,
         args.output_wav,
         args.bleeps_spec,
-        args.prover_toml_path,
+        args.prover_toml_name,
         args.proof_output,
     )
 
