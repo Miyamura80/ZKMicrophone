@@ -1,9 +1,8 @@
 import { ChangeEvent, ChangeEventHandler, FormEvent, useState } from 'react';
 import Navbar from '../components/Navbar';
 import AudioEditor from '../components/AudioEditorNew';
-import ReactDOM from 'react-dom';
-import axios from 'axios';
-import IPFSCard from '@/components/IPFSCard';
+import IPFSCard from '../components/IPFSCard';
+import { RainbowConnect } from '../components/RainbowConnect';
 
 
 const EditPage = () => {
@@ -41,6 +40,7 @@ const EditPage = () => {
     <div>
       <Navbar />
       <IPFSCard imageSrc='' audioSrc='' username='' />
+      <RainbowConnect />
       <div style={centeredDivStyle} className='h-64'></div>
       {audioFile &&
         <div className='w-full max-w-lg mx-auto'>
