@@ -7,6 +7,7 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_cors import CORS
 import subprocess
+import toml
 
 
 app = Flask(__name__)
@@ -35,6 +36,7 @@ noir_nargo_path = os.path.join(noir_transform_audio_dir, 'Nargo.toml')
 
 noir_run_proof_output_path = os.path.join(noir_run_dir, 'audio_transform.proof')
 noir_run_edited_wav_output_path = os.path.join(noir_run_dir, 'out.wav')
+noir_run_verifier_output_path = os.path.join(noir_run_dir, 'Verifier.toml')
 
 shutil.copy(noir_main_path, os.path.join(noir_run_src_dir, 'main.nr'))
 shutil.copy(noir_nargo_path, os.path.join(noir_run_dir, 'Nargo.toml'))
@@ -108,7 +110,7 @@ class AudioUploadAPI(Resource):
                 '--input_wav', filepath,
                 '--output_wav', noir_run_edited_wav_output_path,
                 '--bleeps_spec', bleeps_spec_filename,
-                '--prover_toml_path', 'Prover.toml',
+                '--prover_toml_name', 'Prover',
                 '--proof_output', noir_run_proof_output_path
             ], 
             cwd=noir_run_dir
@@ -118,6 +120,8 @@ class AudioUploadAPI(Resource):
             edited_wav_binary = file.read()
         with open(noir_run_proof_output_path, 'rb') as file:
             proof_binary = file.read()
+        with open(noir_run_verifier_output_path, 'r') as file:
+            noir_verifier_toml = toml.load(file)
 
         edited_wav_base64 = base64.b64encode(edited_wav_binary).decode('utf-8')
         proof_base64 = base64.b64encode(proof_binary).decode('utf-8')
@@ -126,7 +130,7 @@ class AudioUploadAPI(Resource):
         print("Edited wav length: ", len(edited_wav_binary))
         print("Proof length: ", len(proof_binary))
 
-        return {'message': 'Audio file uploaded successfully', 'edited_audio': edited_wav_base64, 'proof': proof_base64}, 201
+        return {'message': 'Audio file uploaded successfully', 'edited_audio': edited_wav_base64, 'proof': proof_base64, 'public_inputs': noir_verifier_toml}, 201
 
     def allowed_file(self, filename):
         return '.' in filename and \
