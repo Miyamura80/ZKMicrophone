@@ -1,9 +1,14 @@
 import os
+import base64
+import shutil
 import re
 import base64
 from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_cors import CORS
+import subprocess
+import toml
+
 
 app = Flask(__name__)
 # cors = CORS(app, resources={r'/*': {'origins': '*',
@@ -14,11 +19,27 @@ home_dir = os.path.expanduser("~")
 run_dir = os.path.join(home_dir, 'run')
 audio_run_dir = os.path.join(run_dir, 'audio_run')
 noir_run_dir = os.path.join(run_dir, 'noir_run')
+noir_run_src_dir = os.path.join(noir_run_dir, 'src')
 
-for d in [audio_run_dir, noir_run_dir]:
+bleeps_spec_filename = os.path.join(noir_run_dir, 'bleeps.spec')
+
+for d in [audio_run_dir, noir_run_dir, noir_run_src_dir]:
     # Check if the directory exists, and create it if it doesn't
     if not os.path.exists(d):
         os.makedirs(d)
+
+root_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+circuits_dir = os.path.join(root_dir, 'circuits')
+noir_transform_audio_dir = os.path.join(circuits_dir, 'transform_audio')
+noir_main_path = os.path.join(noir_transform_audio_dir, 'src', 'main.nr')
+noir_nargo_path = os.path.join(noir_transform_audio_dir, 'Nargo.toml')
+
+noir_run_proof_output_path = os.path.join(noir_run_dir, 'audio_transform.proof')
+noir_run_edited_wav_output_path = os.path.join(noir_run_dir, 'out.wav')
+noir_run_verifier_output_path = os.path.join(noir_run_dir, 'Verifier.toml')
+
+shutil.copy(noir_main_path, os.path.join(noir_run_src_dir, 'main.nr'))
+shutil.copy(noir_nargo_path, os.path.join(noir_run_dir, 'Nargo.toml'))
 
 
 class AudioUploadAPI(Resource):
@@ -53,9 +74,6 @@ class AudioUploadAPI(Resource):
         try:
             left_indices = [int(x) for x in left_indices_str.split()]
             print('Parsed left indices: ', left_indices)
-            if len(left_indices) % 2 != 0:
-                raise ValueError(
-                    "Number of left indices must be multiple of 2")
         except ValueError:
             return {'message': 'Invalid left indices'}, 400
 
@@ -68,12 +86,51 @@ class AudioUploadAPI(Resource):
         except ValueError:
             return {'message': 'Invalid base64 list'}, 400
 
+        if len(left_indices) != len(bucket_datas):
+            return {'message': 'Left indices and bucket datas must be the same length'}, 400
+
         signature_str = body_parameters.get('signature', '')
         if not signature_str.startswith('0x') or len(signature_str) != 66 or not re.fullmatch(r'0x[0-9a-fA-F]*', signature_str):
             return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
         print('Parsed signature: ', signature_str)
 
-        return {'message': 'Audio file uploaded successfully', 'edited_audio': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz', 'proof': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz'}, 201
+        # TODO: we need to call into rado function and return the edited audio + proof
+        bleeps_spec = f"""{bucket_size}
+{left_indices_str}
+{bucket_datas_str}
+"""
+        print(bleeps_spec)
+
+        with open(bleeps_spec_filename, 'w') as file:
+            file.write(bleeps_spec)
+
+        res = subprocess.check_output(
+            [
+                os.path.join(noir_transform_audio_dir, "setup_custom.py"), 
+                '--input_wav', filepath,
+                '--output_wav', noir_run_edited_wav_output_path,
+                '--bleeps_spec', bleeps_spec_filename,
+                '--prover_toml_name', 'Prover',
+                '--proof_output', noir_run_proof_output_path
+            ], 
+            cwd=noir_run_dir
+        )
+
+        with open(noir_run_edited_wav_output_path, 'rb') as file:
+            edited_wav_binary = file.read()
+        with open(noir_run_proof_output_path, 'rb') as file:
+            proof_binary = file.read()
+        with open(noir_run_verifier_output_path, 'r') as file:
+            noir_verifier_toml = toml.load(file)
+
+        edited_wav_base64 = base64.b64encode(edited_wav_binary).decode('utf-8')
+        proof_base64 = base64.b64encode(proof_binary).decode('utf-8')
+
+        print(res)
+        print("Edited wav length: ", len(edited_wav_binary))
+        print("Proof length: ", len(proof_binary))
+
+        return {'message': 'Audio file uploaded successfully', 'edited_audio': edited_wav_base64, 'proof': proof_base64, 'public_inputs': noir_verifier_toml}, 201
 
     def allowed_file(self, filename):
         return '.' in filename and \

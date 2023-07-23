@@ -1,45 +1,179 @@
-import React, { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
+// import RecordPlugin from 'https://unpkg.com/wavesurfer.js@7/dist/plugins/record.esm.js'
+// import RecordPlugin from 'wavesurfer.js/dist/plugins/record.js';
+import RegionsPlugin, { Region } from 'wavesurfer.js/dist/plugins/regions.js';
 
-const WaveSurferComponent: React.FC = () => {
-  let ws: WaveSurfer;
 
-  useEffect(() => {
-    if (waveformRef.current) {
-      ws = WaveSurfer.create({
-        container: waveformRef.current,
-        waveColor: 'rgb(200, 0, 200)',
-        progressColor: 'rgb(100, 0, 100)',
-        plugins: [RegionsPlugin.create()]
-      });
+const AudioEditor = ({ audioFile }: { audioFile: File | null }) => {
+    let index: number = 1;
+    if (audioFile) {
+        return (
+            <WaveAudio index={index} audioFile={audioFile} />
+        )
+    }
+    return (
+        <p>
+            Error, no file sent
+        </p>
+    )
+}
 
-      ws.load('https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand3.wav');
+let audioElements: any[] = [];
 
-      ws.on('ready', () => {
-        wsRegions = ws.addRegion({
-          start: 0,
-          end: 8,
-          content: 'Resize me',
-          color: 'rgba(255, 0, 0, 0.5)',
-          drag: false,
-          resize: true,
+function arrayBufferToBase64(buffer: Uint8Array) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+}
+
+function WaveAudio(props: { index: number; audioFile: File }) {
+    // const waveAudioRef = useRef<WaveSurfer>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioContainerRef = useRef<HTMLDivElement>(null);
+
+    let waveform: WaveSurfer;
+    let wsRegions: RegionsPlugin;
+
+    useEffect(() => {
+        // const audioElement = document.querySelector(
+        //     `#waveform_${props["index"]}`
+        // ) as HTMLElement;
+        const audioElement = audioContainerRef.current;
+        if (!audioElement) return;
+        waveform = WaveSurfer.create({
+            container: audioElement,
+            waveColor: "#363020",
+            progressColor: "#4F759B",
+            /** The color of the playpack cursor */
+            cursorColor: '#4F759B',
+            /** The cursor width */
+            cursorWidth: 2,
+            /** Play the audio on load */
+            autoplay: false,
+            /** Pass false to disable clicks on the waveform */
+            interact: true,
+            /** Render the waveform with bars like this: ▁ ▂ ▇ ▃ ▅ ▂ */
+            barWidth: 2,
+            /** Minimum pixels per second of audio (i.e. zoom level) */
+            minPxPerSec: 1,
         });
-        // add more regions as required
-      });
+        // audioContainerRef.current = audioElement;
+        waveform.load(props.audioFile.name);
+        audioElements.push(waveform);
+        // waveAudioRef.current = waveform;
+
+        // Add bleep region
+        wsRegions = waveform.registerPlugin(RegionsPlugin.create())
+
+        wsRegions.addRegion({
+            start: 0.5,
+            end: 1,
+            content: 'bleep this',
+            color: 'rgba(234, 255, 218, 0.5)',
+            resize: false,
+        })
+
+        // Handle region clicks
+        wsRegions.on('region-double-clicked', handleRegionClick);
+
+        // Clean up the waveform instance on unmount
+        return () => {
+            waveform.destroy();
+            audioElements = [];
+        };
+    }, [props.audioFile]);
+
+    const handleRegionClick = (region: any, event: any) => {
+        console.log('Clicked region:', region);
+        console.log('Start:', region.start);
+        console.log('End:', region.end);
+    };
+
+
+    const handleWaveformClick = () => {
+        console.log('Toggled audio')
+        const lastWaveformInstance = audioElements[audioElements.length - 1];
+        if (lastWaveformInstance) {
+            if (isPlaying) {
+                lastWaveformInstance.pause();
+            } else {
+                lastWaveformInstance.play();
+            }
+            setIsPlaying((prevState) => !prevState);
+        }
+    };
+
+    const handleBleep = () => {
+        // Calls into POST
+        // Returns:
+        // Message: "status"
+        // "edited_audio": "base 64 encoded string",
+        // "proof": "base64 encoded string"
+
+        const regions: Region[] = wsRegions.getRegions();
+        console.log("regions", regions);
+        const region = regions[0]; // only support one region for now
+        const { start, end } = region;
+        const decodedData = waveform.getDecodedData();
+        if (!decodedData) {
+            console.log("no decoded data for waveform");
+            return;
+        }
+        console.log("decodedData", decodedData);
+
+        const chunkSizeBytes = 2;
+        const bucketSizeBytes = 1000;
+        // might be off by one but w/e
+        const startIndex = Math.floor((start / (region as any).totalDuration) * chunkSizeBytes * decodedData.length / bucketSizeBytes);
+        const endIndex = Math.floor((end / (region as any).totalDuration) * chunkSizeBytes * decodedData.length / bucketSizeBytes);
+        const leftIndices = Array.from({length: endIndex - startIndex}, (_, i) => startIndex + i);
+        const bucketDatas: string[] = [...Array(endIndex - startIndex)].map(i => arrayBufferToBase64(new Uint8Array([...Array(bucketSizeBytes).fill(0)])));
+
+        const formData = new FormData();
+        formData.append("file", props.audioFile);
+        formData.append("bucket_size", `${bucketSizeBytes}`);
+        formData.append("left_indices", leftIndices.join(" "));
+        formData.append("signature", "0x0000000000000000000000000000000000000000000000000000000000000000");
+        formData.append("bucket_datas", bucketDatas.join(" "));
+
+        axios.post('http://localhost:5000/api/audioUpload', formData)
+            .then((response) => {
+                console.log("Success", response)
+            })
+            .catch((error) => {
+                console.log("Error", error)
+            })
     }
 
-    return () => {
-      ws && ws.destroy();
-    };
-  }, []);
+    return (
+        <div className="flex-col items-center space-y-2">
+            <div className="flex space-x-2">
+                <button
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 text-white"
+                    onClick={handleWaveformClick}
+                >
+                    {isPlaying ? 'Pause' : 'Play'}
+                </button>
+                <button
+                    className="px-4 py-2 rounded-full bg-red-500 text-white"
+                    onClick={handleBleep}
+                >
+                    Bleep
+                </button>
+            </div>
+            <div
+                id={`waveform_${props.index}`}
+                // onClick={handleWaveformClick}
+                ref={audioContainerRef}
+            ></div>
+        </div>
+    );
+}
 
-  return (
-    <html>
-    <div id="waveform"></div>
-    </p>
-  </html>
-  );
-};
-
-export default WaveSurferComponent;
+export default AudioEditor;

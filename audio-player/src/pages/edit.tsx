@@ -1,11 +1,10 @@
 import { ChangeEvent, ChangeEventHandler, FormEvent, useState } from 'react';
 import Navbar from '../components/Navbar';
-import AudioEditor from '../components/AudioEditorNew';
 import IPFSCard from '../components/IPFSCard';
 import { RainbowConnect } from '../components/RainbowConnect';
 import VerifyTransform from '@/components/VerifyTransform';
 import ReadRegistry from '@/components/ReadRegistry';
-
+import AudioEditor from '../components/AudioEditor';
 
 const EditPage = () => {
   const [query, setQuery] = useState('');

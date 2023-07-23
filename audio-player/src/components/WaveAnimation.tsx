@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import styles from '../styles/SoundWave.module.scss';
 
+// PROBABLY WILL NOT BE USED
+
 const WaveAnimation: React.FC = () => {
   const soundWaveRef = useRef<HTMLDivElement | null>(null);
 
