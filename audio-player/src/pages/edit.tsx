@@ -6,7 +6,6 @@ import axios from 'axios';
 import IPFSCard from '@/components/IPFSCard';
 
 
-
 const EditPage = () => {
   const [query, setQuery] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
