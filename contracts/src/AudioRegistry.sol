@@ -8,7 +8,7 @@ interface IVerifier {
 }
 
 struct AudioEntry {
-    address publicKey;
+    address microphoneAddress;
     bytes32 ipfsCid;
 }
 
@@ -18,8 +18,9 @@ struct Microphone {
 
 contract AudioRegistry is Ownable {
     IVerifier verifier;
+    bytes32[] public audioHashes; // TODO do we need to initialize?
     mapping(address => Microphone) public registeredMicrophones;
-    mapping(bytes32 => AudioEntry) public audioEntries;
+    mapping(bytes32 => AudioEntry) public audioToEntry;
 
     constructor(address verifierAddress_) {
         verifier = IVerifier(verifierAddress_);
@@ -52,7 +53,8 @@ contract AudioRegistry is Ownable {
 
         uint256 inter = uint256(publicInputs[6]) + BREAKER_FIELD_MOD * uint256(publicInputs[7]);
         bytes32 inter_bytes = bytes32(inter);
-        audioEntries[inter_bytes] = AudioEntry(micPublicKey, ipfsCid);
+        audioToEntry[inter_bytes] = AudioEntry(micPublicKey, ipfsCid);
+        audioHashes.push(inter_bytes);
 
         emit AudioEntryRegistered(micPublicKey, inter_bytes);
     }
@@ -89,6 +91,6 @@ contract AudioRegistry is Ownable {
     }
 
     function audioExists(bytes32 audioHash) external view returns (bool) {
-        return audioEntries[audioHash].publicKey != address(0);
+        return audioToEntry[audioHash].microphoneAddress != address(0);
     }
 }

@@ -5,10 +5,11 @@ import { AUDIO_REGISTRY_ADDRESS } from '@/contractAddresses'
 const VerifyTransform = () => {
     const { address, connector, isConnected } = useAccount()
 
+    // TODO: take outputs from Bleep
     const proof = "";
-    const publicInputs = [""];
-    const signature = "";
-    const ipfsCid = "";
+    const publicInputs = ["0x0000000000000000000000000000000000000000000000000000000000000002"];
+    const signature = "0x000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001B";
+    const ipfsCid = "0x0000000000000000000000000000000000000000000000000000000000000002";
 
     const { config } = usePrepareAudioRegistryVerifyAudioTransform({
         account: address,

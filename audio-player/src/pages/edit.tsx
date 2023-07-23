@@ -4,6 +4,7 @@ import AudioEditor from '../components/AudioEditorNew';
 import IPFSCard from '../components/IPFSCard';
 import { RainbowConnect } from '../components/RainbowConnect';
 import VerifyTransform from '@/components/VerifyTransform';
+import ReadRegistry from '@/components/ReadRegistry';
 
 
 const EditPage = () => {
@@ -59,6 +60,7 @@ const EditPage = () => {
       }
 
       <VerifyTransform />
+      <ReadRegistry />
     </div >
   );
 };
