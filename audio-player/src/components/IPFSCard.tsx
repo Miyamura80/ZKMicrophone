@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { fromBytes } from 'viem';
 const { Web3Storage, getFilesFromPath } = require("web3.storage");
+const custom_button = {
+  "background-color": "#007bff",
+  /* Set the background color */
+  "color": "#ffffff",
+  /* Set the text color */
+  "border": "none",
+  //   /* Remove default border */
+  //   padding: 10px 20px;
+  //   /* Add padding around the text */
+  //   border - radius: 5px;
+  // /* Rounded corners */
+  // cursor: pointer;
+  // /* Show pointer cursor on hover */
+  // font - size: 16px;
+  //   /* Set the font size */
+}
+
+//   .custom - button: hover {
+//     background - color: #0056b3;
+//   /* Change background color on hover */
+// }
 
 function base64ToFile(base64String: string, filename: string, contentType: string) {
   var byteCharacters = atob(base64String);
@@ -39,7 +60,7 @@ const IPFSCard = ({ setIPFSCID, editedAudio }: { setIPFSCID: any, editedAudio: s
 
   return (
     <div>
-      <button onClick={() => uploadFile(editedAudioFile)}>
+      <button className="custom_button" onClick={() => uploadFile(editedAudioFile)}>
         Upload to IPFS
       </button>
     </div>

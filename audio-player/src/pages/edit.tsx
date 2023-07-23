@@ -1,10 +1,8 @@
 import { ChangeEvent, ChangeEventHandler, FormEvent, useState } from 'react';
 import Navbar from '../components/Navbar';
 import IPFSCard from '../components/IPFSCard';
-import { RainbowConnect } from '../components/RainbowConnect';
 import VerifyTransform from '@/components/VerifyTransform';
 import AudioEditor from '../components/AudioEditor';
-import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 import { Profile } from '@/components/Profile';
 
 export interface TransformResults {
@@ -24,13 +22,6 @@ export interface PublicInputs {
   bleeps_end: string[];
   return: string;
 }
-
-// {
-//   hash_full_end: "0x0000000000000000000000000000000063e0a84f6062de5abe2a381681ffee4b",
-//     hash_full_start: "0x000000000000000000000000000000005e0b2caa4210e560e0fa5cfe001ab0cf",
-//       hash_sub_end: "0x00000000000000000000000000000000434ffef5f5062af989d375f91bdc27d6", 
-//  …
-// }
 
 const EditPage = () => {
   const [audioFile, setAudioFile] = useState<File | null>(null);
