@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/access/Ownable.sol";
 
-interface IUltraVerifier {
+interface IVerifier {
     function verify(bytes calldata _proof, bytes32[] calldata _publicInputs) external view returns (bool);
 }
 
@@ -17,12 +17,12 @@ struct Microphone {
 }
 
 contract AudioRegistry is Ownable {
-    IUltraVerifier verifier;
+    IVerifier verifier;
     mapping(address => Microphone) public registeredMicrophones;
     mapping(bytes32 => AudioEntry) public audioEntries;
 
     constructor(address verifierAddress_) {
-        verifier = IUltraVerifier(verifierAddress_);
+        verifier = IVerifier(verifierAddress_);
     }
 
     event MicrophoneRegistered(address indexed micPublicKey);

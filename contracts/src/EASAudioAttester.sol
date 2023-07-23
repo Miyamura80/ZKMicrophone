@@ -10,9 +10,8 @@ contract EASAudioAttester {
         audioRegistry = AudioRegistry(audioRegistryAddress_);
     }
 
-    function attest (bytes32 editedAudioFullHash) external {
-        require(audioRegistry.audioExists(editedAudioFullHash)); 
+    function attest(bytes32 editedAudioFullHash) external view {
+        require(audioRegistry.audioExists(editedAudioFullHash));
         // msg.sender
     }
-
 }
