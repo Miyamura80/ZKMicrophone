@@ -30,14 +30,14 @@ function arrayBufferToBase64(buffer: Uint8Array) {
     }
     return window.btoa(binary);
 }
+let wsRegions: RegionsPlugin;
+let waveform: WaveSurfer;
 
 function WaveAudio(props: { index: number; audioFile: File; setTransformResults: any }) {
     // const waveAudioRef = useRef<WaveSurfer>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioContainerRef = useRef<HTMLDivElement>(null);
 
-    let waveform: WaveSurfer;
-    let wsRegions: RegionsPlugin;
 
     useEffect(() => {
         // const audioElement = document.querySelector(
@@ -79,7 +79,7 @@ function WaveAudio(props: { index: number; audioFile: File; setTransformResults:
         })
 
         // Handle region clicks
-        wsRegions.on('region-double-clicked', handleRegionClick);
+        // wsRegions.on('region-double-clicked', handleRegionClick);
 
         // Clean up the waveform instance on unmount
         return () => {

@@ -19,6 +19,8 @@ import {
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
+import { createClient } from 'viem';
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 
 const { chains, publicClient } = configureChains([
   mainnet, goerli, foundry
@@ -31,7 +33,7 @@ const { chains, publicClient } = configureChains([
 );
 const { connectors } = getDefaultWallets({
   appName: 'TwinCircuits',
-  projectId: 'b45b212d204525704dde4bd05eee22aa',
+  projectId: '78133656167d49ae79272d2a60d3eb0d',
   chains
 });
 const wagmiConfig = createConfig({
@@ -39,6 +41,20 @@ const wagmiConfig = createConfig({
   connectors,
   publicClient
 })
+
+// const client = createClient({
+//   autoConnect: true,
+//   connectors({ goerli.id
+// }) {
+//   const chain = chains.find((x) => x.id === chainId) ?? defaultChain
+//     const rpcUrl = chain.rpcUrls.alchemy
+//     ? `${chain.rpcUrls.alchemy}/${alchemyId}`
+//     : chain.rpcUrls.default
+//     return [
+//       new MetaMaskConnector({ chains }),
+//     ]
+//   },
+// })
 
 const App = () => {
   return (

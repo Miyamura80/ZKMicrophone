@@ -92,8 +92,8 @@ class AudioUploadAPI(Resource):
             return {'message': 'Left indices and bucket datas must be the same length'}, 400
 
         signature_str = body_parameters.get('signature', '')
-        if not signature_str.startswith('0x') or len(signature_str) != 132 or not re.fullmatch(r'0x[0-9a-fA-F]*', signature_str):
-            return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
+        # if not signature_str.startswith('0x') or len(signature_str) != 132 or not re.fullmatch(r'0x[0-9a-fA-F]*', signature_str):
+        # return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
         print('Parsed signature: ', signature_str)
 
         # TODO: we need to call into rado function and return the edited audio + proof
