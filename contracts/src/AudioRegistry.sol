@@ -44,15 +44,13 @@ contract AudioRegistry is Ownable {
         bytes32 ipfsCid
     ) external {
         // publicInputs == [hash_full_start, hash_full_end, wav_weights_start, wav_weights_end, bleeps_start, bleeps_end, edited_audio_hash_full_start, edited_audio_hash_full_end]
-        // TODO cast
         address micPublicKey = verifySignature(
-            bytes32(uint256(uint128(uint256(publicInputs[0])) + BREAKER_FIELD_MOD * uint128(uint256(publicInputs[1])))),
-            signature
+            bytes32(uint256(uint256(publicInputs[0]) + BREAKER_FIELD_MOD * uint256(publicInputs[1]))), signature
         );
         require(registeredMicrophones[micPublicKey].publicKey != address(0), "AudioRegistry: key not registered");
         require(verifier.verify(proof, publicInputs), "Registry: transform snark must verify.");
 
-        uint256 inter = uint128(uint256(publicInputs[6])) + BREAKER_FIELD_MOD * uint128(uint256(publicInputs[7]));
+        uint256 inter = uint256(publicInputs[6]) + BREAKER_FIELD_MOD * uint256(publicInputs[7]);
         bytes32 inter_bytes = bytes32(inter);
         audioEntries[inter_bytes] = AudioEntry(micPublicKey, ipfsCid);
 
