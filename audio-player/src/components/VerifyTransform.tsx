@@ -1,20 +1,32 @@
 import { useAccount, useConnect, useWaitForTransaction } from 'wagmi'
 import { useAudioRegistryVerifyAudioTransform, usePrepareAudioRegistryVerifyAudioTransform } from '../../generated'
 import { AUDIO_REGISTRY_ADDRESS } from '@/contractAddresses'
+import { TransformResults } from '@/pages/edit'
 
-const VerifyTransform = () => {
+const VerifyTransform = ({ transformResults, signature, IPFSCID }: { transformResults: TransformResults, signature: string, IPFSCID: string }) => {
     const { address, connector, isConnected } = useAccount()
 
-    // TODO: take outputs from Bleep
-    const proof = "";
-    const publicInputs = ["0x0000000000000000000000000000000000000000000000000000000000000002"];
-    const signature = "0x000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001B";
-    const ipfsCid = "0x0000000000000000000000000000000000000000000000000000000000000002";
+    const publicInputsArr = [
+        transformResults.public_inputs.hash_full_start,
+        transformResults.public_inputs.hash_full_end,
+        ...transformResults.public_inputs.wav_weights_start,
+        ...transformResults.public_inputs.wav_weights_end,
+        ...transformResults.public_inputs.bleeps_start,
+        ...transformResults.public_inputs.bleeps_end,
+        transformResults.public_inputs.hash_sub_start,
+        transformResults.public_inputs.hash_sub_end,
+        transformResults.public_inputs.return,
+    ];
 
     const { config } = usePrepareAudioRegistryVerifyAudioTransform({
         account: address,
         address: AUDIO_REGISTRY_ADDRESS,
-        args: [proof, publicInputs, signature, ipfsCid],
+        args: [
+            transformResults.proof,
+            publicInputsArr,
+            signature,
+            IPFSCID,
+        ],
         enabled: true,
     })
     const { data, write } = useAudioRegistryVerifyAudioTransform({

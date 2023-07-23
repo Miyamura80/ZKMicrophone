@@ -11,8 +11,8 @@ import toml
 
 
 app = Flask(__name__)
-# cors = CORS(app, resources={r'/*': {'origins': '*',
-# 'methods': ['GET', 'POST', 'PUT', 'DELETE']}})
+cors = CORS(app, resources={r'/*': {'origins': '*',
+                                    'methods': ['GET', 'POST', 'PUT', 'DELETE']}})
 api = Api(app)
 
 home_dir = os.path.expanduser("~")
@@ -28,13 +28,15 @@ for d in [audio_run_dir, noir_run_dir, noir_run_src_dir]:
     if not os.path.exists(d):
         os.makedirs(d)
 
-root_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+current_directory = os.getcwd()
+root_dir = os.path.join(os.path.dirname(current_directory))
 circuits_dir = os.path.join(root_dir, 'circuits')
 noir_transform_audio_dir = os.path.join(circuits_dir, 'transform_audio')
 noir_main_path = os.path.join(noir_transform_audio_dir, 'src', 'main.nr')
 noir_nargo_path = os.path.join(noir_transform_audio_dir, 'Nargo.toml')
 
-noir_run_proof_output_path = os.path.join(noir_run_dir, 'audio_transform.proof')
+noir_run_proof_output_path = os.path.join(
+    noir_run_dir, 'audio_transform.proof')
 noir_run_edited_wav_output_path = os.path.join(noir_run_dir, 'out.wav')
 noir_run_verifier_output_path = os.path.join(noir_run_dir, 'Verifier.toml')
 
@@ -90,7 +92,7 @@ class AudioUploadAPI(Resource):
             return {'message': 'Left indices and bucket datas must be the same length'}, 400
 
         signature_str = body_parameters.get('signature', '')
-        if not signature_str.startswith('0x') or len(signature_str) != 66 or not re.fullmatch(r'0x[0-9a-fA-F]*', signature_str):
+        if not signature_str.startswith('0x') or len(signature_str) != 132 or not re.fullmatch(r'0x[0-9a-fA-F]*', signature_str):
             return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
         print('Parsed signature: ', signature_str)
 
@@ -106,13 +108,13 @@ class AudioUploadAPI(Resource):
 
         res = subprocess.check_output(
             [
-                os.path.join(noir_transform_audio_dir, "setup_custom.py"), 
+                os.path.join(noir_transform_audio_dir, "setup_custom.py"),
                 '--input_wav', filepath,
                 '--output_wav', noir_run_edited_wav_output_path,
                 '--bleeps_spec', bleeps_spec_filename,
                 '--prover_toml_name', 'Prover',
                 '--proof_output', noir_run_proof_output_path
-            ], 
+            ],
             cwd=noir_run_dir
         )
 
