@@ -1,16 +1,15 @@
+import { PublicInputs, TransformResults } from '@/pages/edit';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-// import RecordPlugin from 'https://unpkg.com/wavesurfer.js@7/dist/plugins/record.esm.js'
-// import RecordPlugin from 'wavesurfer.js/dist/plugins/record.js';
 import RegionsPlugin, { Region } from 'wavesurfer.js/dist/plugins/regions.js';
 
 
-const AudioEditor = ({ audioFile }: { audioFile: File | null }) => {
+const AudioEditor = ({ audioFile, setTransformResults }: { audioFile: File | null, setTransformResults: any }) => {
     let index: number = 1;
     if (audioFile) {
         return (
-            <WaveAudio index={index} audioFile={audioFile} />
+            <WaveAudio index={index} audioFile={audioFile} setTransformResults={setTransformResults} />
         )
     }
     return (
@@ -32,7 +31,7 @@ function arrayBufferToBase64(buffer: Uint8Array) {
     return window.btoa(binary);
 }
 
-function WaveAudio(props: { index: number; audioFile: File }) {
+function WaveAudio(props: { index: number; audioFile: File; setTransformResults: any }) {
     // const waveAudioRef = useRef<WaveSurfer>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioContainerRef = useRef<HTMLDivElement>(null);
@@ -132,19 +131,32 @@ function WaveAudio(props: { index: number; audioFile: File }) {
         // might be off by one but w/e
         const startIndex = Math.floor((start / (region as any).totalDuration) * chunkSizeBytes * decodedData.length / bucketSizeBytes);
         const endIndex = Math.floor((end / (region as any).totalDuration) * chunkSizeBytes * decodedData.length / bucketSizeBytes);
-        const leftIndices = Array.from({length: endIndex - startIndex}, (_, i) => startIndex + i);
+        const leftIndices = Array.from({ length: endIndex - startIndex }, (_, i) => startIndex + i);
         const bucketDatas: string[] = [...Array(endIndex - startIndex)].map(i => arrayBufferToBase64(new Uint8Array([...Array(bucketSizeBytes).fill(0)])));
 
         const formData = new FormData();
         formData.append("file", props.audioFile);
         formData.append("bucket_size", `${bucketSizeBytes}`);
         formData.append("left_indices", leftIndices.join(" "));
-        formData.append("signature", "0x0000000000000000000000000000000000000000000000000000000000000000");
+        // Signature is ~encoded~ in the file name, remove `.wav`
+        const signature = props.audioFile.name.slice(0, -4);
+        formData.append("signature", signature);
         formData.append("bucket_datas", bucketDatas.join(" "));
 
-        axios.post('http://localhost:5000/api/audioUpload', formData)
+        axios.post('http://localhost:5000/api/audioUpload', formData, {
+            headers: {
+                // 'application/json' is the modern content-type for JSON, but some
+                // older servers may use 'text/json'.
+                // See: http://bit.ly/text-json
+                'Access-Control-Allow-Origin': '*'
+            }
+        })
             .then((response) => {
                 console.log("Success", response)
+                if (response.data && response.data.edited_audio && response.data.proof) {
+                    const transformResults: TransformResults = response.data;
+                    props.setTransformResults(transformResults);
+                }
             })
             .catch((error) => {
                 console.log("Error", error)

@@ -3,33 +3,44 @@ import Navbar from '../components/Navbar';
 import IPFSCard from '../components/IPFSCard';
 import { RainbowConnect } from '../components/RainbowConnect';
 import VerifyTransform from '@/components/VerifyTransform';
-import ReadRegistry from '@/components/ReadRegistry';
 import AudioEditor from '../components/AudioEditor';
+import { NetworkSwitcher } from '@/components/NetworkSwitcher';
+
+export interface TransformResults {
+  proof: string;
+  edited_audio: string;
+  public_inputs: PublicInputs;
+}
+
+export interface PublicInputs {
+  hash_full_start: string;
+  hash_full_end: string;
+  hash_sub_start: string;
+  hash_sub_end: string
+  wav_weights_start: string[];
+  wav_weights_end: string[];
+  bleeps_start: string[];
+  bleeps_end: string[];
+  return: string;
+}
+
+// {
+//   hash_full_end: "0x0000000000000000000000000000000063e0a84f6062de5abe2a381681ffee4b",
+//     hash_full_start: "0x000000000000000000000000000000005e0b2caa4210e560e0fa5cfe001ab0cf",
+//       hash_sub_end: "0x00000000000000000000000000000000434ffef5f5062af989d375f91bdc27d6", 
+//  …
+// }
 
 const EditPage = () => {
-  const [query, setQuery] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-
+  const [transformResults, setTransformResults] = useState<TransformResults | null>(null);
+  const [IPFSCID, setIPFSCID] = useState<string | null>(null);
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event && event.target && event.target.files && event.target.files.length > 0) {
-      console.log("FILE", event.target.files[0])
       setAudioFile(event.target.files[0])
     }
   }
-
-  /* Client side only solution */
-  // const onFileUpload = (event: FormEvent<HTMLFormElement>) => {
-  //   event.preventDefault()
-  //   if (event && event.target && event.target.files && event.target.files.length > 0) {
-  //     const file = event.target.files?.[0];
-  //     setAudioFile(file);
-  //     // const url = URL.createObjectURL(audioFile);
-  //     // console.log('NEW URL', url);
-  //     // setAudioUrl(file);
-  //   }
-  // }
 
   const centeredDivStyle = {
     display: 'flex',
@@ -40,26 +51,27 @@ const EditPage = () => {
   return (
     <div>
       <Navbar />
-      <IPFSCard imageSrc='' audioSrc='' username='' />
       <RainbowConnect />
       <div style={centeredDivStyle} className='h-64'></div>
-      {audioFile &&
+      {audioFile && !transformResults &&
         <div className='w-full max-w-lg mx-auto'>
-          <  AudioEditor audioFile={audioFile} />
+          <  AudioEditor audioFile={audioFile} setTransformResults={setTransformResults} />
         </div>
       }
       {!audioFile &&
         <div style={centeredDivStyle} className='py-10'>
           <form>
-            {/* <form >onSubmit={onFileUpload}> */}
             <input type="file" onChange={onFileChange} />
-            {/* <button type="submit">Upload</button> */}
           </form>
         </div>
       }
-
-      <VerifyTransform />
-      <ReadRegistry />
+      {transformResults && !IPFSCID &&
+        <IPFSCard setIPFSCID={setIPFSCID} editedAudio={transformResults.edited_audio} />
+      }
+      {IPFSCID && transformResults && audioFile?.name &&
+        <VerifyTransform transformResults={transformResults} signature={audioFile?.name.slice(0, -4)} IPFSCID={IPFSCID} />
+      }
+      {/* <ReadRegistry /> */}
     </div >
   );
 };

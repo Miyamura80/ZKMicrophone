@@ -12,7 +12,7 @@ contract AudioRegistryScript is Script {
         // vm.startBroadcast(deployerPrivateKey);
         address micAddress = vm.envAddress("MICROPHONE_ADDRESS");
         vm.startBroadcast();
-        AudioRegistry registry = new AudioRegistry(address(0));
+        AudioRegistry registry = new AudioRegistry(0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82);
         console.log("Registry address", address(registry));
         registry.registerMicrophone(micAddress);
     }
