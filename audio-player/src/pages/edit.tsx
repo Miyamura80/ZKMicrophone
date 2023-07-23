@@ -5,6 +5,7 @@ import { RainbowConnect } from '../components/RainbowConnect';
 import VerifyTransform from '@/components/VerifyTransform';
 import AudioEditor from '../components/AudioEditor';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
+import { Profile } from '@/components/Profile';
 
 export interface TransformResults {
   proof: string;
@@ -51,7 +52,8 @@ const EditPage = () => {
   return (
     <div>
       <Navbar />
-      <RainbowConnect />
+      <Profile />
+      {/* <RainbowConnect /> */}
       <div style={centeredDivStyle} className='h-64'></div>
       {audioFile && !transformResults &&
         <div className='w-full max-w-lg mx-auto'>
