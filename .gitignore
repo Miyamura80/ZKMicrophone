@@ -18,3 +18,4 @@ Cargo.lock
 contracts/out/
 contracts/cache/
 cache/
+node_modules

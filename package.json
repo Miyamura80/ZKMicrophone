@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@lit-protocol/lit-node-client": "^2.2.47",
+    "@lit-protocol/lit-node-client-nodejs": "^2.2.47",
     "express": "^4.18.2",
     "multer": "^1.4.5-lts.1"
   }
