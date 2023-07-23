@@ -49,8 +49,11 @@ def split_noir_field_array(arr):
 
 def poly_hash_bytes(b__N):
     poly_hash = 0
+    base_pow = 1
     for b in b__N:
-        poly_hash = (poly_hash * BASE + int(b)) % FIELD_MOD 
+        poly_hash = (poly_hash + base_pow * int(b)) % FIELD_MOD 
+        base_pow = (base_pow * BASE) % FIELD_MOD
+
     return poly_hash
 
 
@@ -64,18 +67,18 @@ def parse_args():
     return parser.parse_args()
 
 
-def setup_circuit(input_frames, output_frames, bucket_positions, bleeps, orig_buckets, bucket_size, prover_toml_path):
+def setup_circuit(input_frames, output_frames, bucket_positions, inp_bleeps, orig_buckets, bucket_size, prover_toml_path):
     with open(prover_toml_path, "w") as f:
         serial_hash_full = poly_hash_bytes(input_frames)
         serial_hash_full_start, serial_hash_full_end = split_noir_field(serial_hash_full)
 
-        serial_hash_sub = serial_arr_int(output_frames)
+        serial_hash_sub = poly_hash_bytes(output_frames)
         serial_hash_sub_start, serial_hash_sub_end = split_noir_field(serial_hash_sub) 
         
         wav_values = [] 
         wav_weights = []
         bleeps = []
-        for pb, bleep in zip(bucket_positions, bleeps):
+        for pb, bleep in zip(bucket_positions, inp_bleeps):
             wav_values.append(poly_hash_bytes(orig_buckets[pb])) 
             wav_weights.append(fast_pow_mod(BASE, pb * bucket_size))
             bleeps.append(poly_hash_bytes(bleep))
@@ -105,16 +108,10 @@ def solve_circuit(prover_toml_path, proof_output):
         [
             "nargo",
             "prove",
-            "--prover_name", prover_toml_path, 
-            "--bin",
-            "noir_prover",
-            "--",
-            prover_toml_path,
-            proof_output,
+            "-p", prover_toml_path,
+            ">", proof_output
         ]
     )
-
-
 
 
 def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
@@ -140,7 +137,7 @@ def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
         if i % bucket_size == 0:
             new_buckets.append([])
 
-        new_buckets[cframe // bucket_size].append(cframe)
+        new_buckets[i // bucket_size].append(cframe)
 
     buckets = copy.deepcopy(new_buckets) 
     for pos, bleep_array in zip(positions, bleeps):
@@ -152,7 +149,7 @@ def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
         wav_file.writeframes(edited_frames)
 
     setup_circuit(frames, edited_frames, positions, bleeps, buckets, bucket_size, prover_toml_path)
-    # solve_circuit(prover_toml_path, proof_output)
+    solve_circuit(prover_toml_path, proof_output)
 
 
 def main(args=None):
