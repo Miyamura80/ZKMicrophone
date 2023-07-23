@@ -104,14 +104,16 @@ hash_sub_end = \"{serial_hash_sub_end}\""""
 def solve_circuit(prover_toml_path, proof_output):
     import subprocess
 
-    subprocess.run(
+    out = subprocess.check_output(
         [
             "nargo",
             "prove",
             "-p", prover_toml_path,
-            ">", proof_output
         ]
     )
+
+    with open(proof_output, "wb") as f:
+        f.write(out)
 
 
 def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
