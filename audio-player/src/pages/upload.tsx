@@ -1,4 +1,3 @@
-import IPFSCard from '../components/IPFSCard';
 import React, { useState } from 'react';
 
 const FileUploader: React.FC = () => {
@@ -12,7 +11,9 @@ const FileUploader: React.FC = () => {
   const handleFileUpload = () => {
     if (selectedFile) {
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append("file", selectedFile);
+
+      console.log(selectedFile);
 
       // Send the formData to your backend for further processing
       // For example, you can use axios to make a POST request to your server
