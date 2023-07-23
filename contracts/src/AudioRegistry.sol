@@ -25,6 +25,8 @@ contract AudioRegistry is Ownable {
         verifier = IVerifier(verifierAddress_);
     }
 
+    uint128 BREAKER_FIELD_MOD = 147946756881789309620446562439722434560;
+
     event MicrophoneRegistered(address indexed micPublicKey);
 
     event AudioEntryRegistered(address indexed micPublicKey, bytes32 indexed audioHash);
@@ -41,14 +43,20 @@ contract AudioRegistry is Ownable {
         bytes calldata signature,
         bytes32 ipfsCid
     ) external {
-        // publicInputs == [hash_full, wav_weights, bleeps, edited_audio_hash_full]
-        address micPublicKey = verifySignature(publicInputs[0], signature);
+        // publicInputs == [hash_full_start, hash_full_end, wav_weights_start, wav_weights_end, bleeps_start, bleeps_end, edited_audio_hash_full_start, edited_audio_hash_full_end]
+        // TODO cast
+        address micPublicKey = verifySignature(
+            bytes32(uint256(uint128(uint256(publicInputs[0])) + BREAKER_FIELD_MOD * uint128(uint256(publicInputs[1])))),
+            signature
+        );
         require(registeredMicrophones[micPublicKey].publicKey != address(0), "AudioRegistry: key not registered");
         require(verifier.verify(proof, publicInputs), "Registry: transform snark must verify.");
 
-        audioEntries[publicInputs[3]] = AudioEntry(micPublicKey, ipfsCid);
+        uint256 inter = uint128(uint256(publicInputs[6])) + BREAKER_FIELD_MOD * uint128(uint256(publicInputs[7]));
+        bytes32 inter_bytes = bytes32(inter);
+        audioEntries[inter_bytes] = AudioEntry(micPublicKey, ipfsCid);
 
-        emit AudioEntryRegistered(micPublicKey, publicInputs[3]);
+        emit AudioEntryRegistered(micPublicKey, inter_bytes);
     }
 
     function verifySignature(bytes32 hash, bytes memory signature) public pure returns (address) {

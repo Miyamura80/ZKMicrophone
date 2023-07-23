@@ -23,7 +23,7 @@ async function uploadFile() {
 
   const storage = new Web3Storage({ token });
 
-  const finalContent = JSON.stringify({ hello: 123});
+  const finalContent = JSON.stringify({ hello: 123 });
   const file = new File([finalContent], "hello.json", {
     type: 'text/plain',
   });
@@ -34,29 +34,29 @@ async function uploadFile() {
 
 const IPFSCard: React.FC<IPFSCardProps> = ({ imageSrc, audioSrc, username }) => {
   const [buttonClicked, setButtonClicked] = useState(false);
-  
+
   const fetchData = async () => {
-      // replace with your own async function
-      // fetch data, call API, etc
-      console.log("Button was clicked, fetching data...");
-      await uploadFile();
+    // replace with your own async function
+    // fetch data, call API, etc
+    console.log("Button was clicked, fetching data...");
+    await uploadFile();
   };
 
   useEffect(() => {
-      if (buttonClicked) {
-          fetchData();
-          setButtonClicked(false); // Reset the button click state
-      }
+    if (buttonClicked) {
+      fetchData();
+      setButtonClicked(false); // Reset the button click state
+    }
   }, [buttonClicked]);
 
   return (
-      <div>
+    <div>
 
-        djlkadjkjwsaldkasjldkajdsalkaslk
-        <button onClick={() => setButtonClicked(true)}>
-            Fetch Data
-        </button>
-      </div>
+      djlkadjkjwsaldkasjldkajdsalkaslk
+      <button onClick={() => setButtonClicked(true)}>
+        Fetch Data
+      </button>
+    </div>
   );
 };
 

@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import AudioEditor from '../components/AudioEditorNew';
 import IPFSCard from '../components/IPFSCard';
 import { RainbowConnect } from '../components/RainbowConnect';
+import VerifyTransform from '@/components/VerifyTransform';
 
 
 const EditPage = () => {
@@ -56,6 +57,8 @@ const EditPage = () => {
           </form>
         </div>
       }
+
+      <VerifyTransform />
     </div >
   );
 };
