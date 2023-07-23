@@ -19,6 +19,7 @@ struct Microphone {
 contract AudioRegistry is Ownable {
     IVerifier verifier;
     bytes32[] public audioHashes; // TODO do we need to initialize?
+    uint32 public audioHashLength;
     mapping(address => Microphone) public registeredMicrophones;
     mapping(bytes32 => AudioEntry) public audioToEntry;
 
@@ -38,13 +39,29 @@ contract AudioRegistry is Ownable {
         emit MicrophoneRegistered(micPublicKey);
     }
 
+    function dummyAddAudio(bytes32 audioHash, address publicKey, bytes32 ipfs) public {
+        audioToEntry[audioHash] = AudioEntry(publicKey, ipfs);
+        audioHashes.push(audioHash);
+        audioHashLength++;
+    }
+
     function verifyAudioTransform(
         bytes calldata proof,
         bytes32[] calldata publicInputs,
         bytes calldata signature,
         bytes32 ipfsCid
     ) external {
-        // publicInputs == [hash_full_start, hash_full_end, wav_weights_start, wav_weights_end, bleeps_start, bleeps_end, edited_audio_hash_full_start, edited_audio_hash_full_end]
+        // publicInputs
+        //     == [
+        //         hash_full_start,
+        //         hash_full_end,
+        //         wav_weights_start,
+        //         wav_weights_end,
+        //         bleeps_start,
+        //         bleeps_end,
+        //         edited_audio_hash_full_start,
+        //         edited_audio_hash_full_end
+        //     ];
         address micPublicKey = verifySignature(
             bytes32(uint256(uint256(publicInputs[0]) + BREAKER_FIELD_MOD * uint256(publicInputs[1]))), signature
         );
@@ -55,6 +72,7 @@ contract AudioRegistry is Ownable {
         bytes32 inter_bytes = bytes32(inter);
         audioToEntry[inter_bytes] = AudioEntry(micPublicKey, ipfsCid);
         audioHashes.push(inter_bytes);
+        audioHashLength++;
 
         emit AudioEntryRegistered(micPublicKey, inter_bytes);
     }
