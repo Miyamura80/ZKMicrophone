@@ -1,9 +1,12 @@
 import os
+import shutil
 import re
 import base64
 from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_cors import CORS
+import subprocess
+
 
 app = Flask(__name__)
 # cors = CORS(app, resources={r'/*': {'origins': '*',
@@ -14,11 +17,23 @@ home_dir = os.path.expanduser("~")
 run_dir = os.path.join(home_dir, 'run')
 audio_run_dir = os.path.join(run_dir, 'audio_run')
 noir_run_dir = os.path.join(run_dir, 'noir_run')
+noir_run_src_dir = os.path.join(noir_run_dir, 'src')
 
-for d in [audio_run_dir, noir_run_dir]:
+bleeps_spec_filename = os.path.join(noir_run_dir, 'bleeps.spec')
+
+for d in [audio_run_dir, noir_run_dir, noir_run_src_dir]:
     # Check if the directory exists, and create it if it doesn't
     if not os.path.exists(d):
         os.makedirs(d)
+
+root_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+circuits_dir = os.path.join(root_dir, 'circuits')
+noir_transform_audio_dir = os.path.join(circuits_dir, 'transform_audio')
+noir_main_path = os.path.join(noir_transform_audio_dir, 'src', 'main.nr')
+noir_nargo_path = os.path.join(noir_transform_audio_dir, 'Nargo.toml')
+
+shutil.copy(noir_main_path, os.path.join(noir_run_src_dir, 'main.nr'))
+shutil.copy(noir_nargo_path, os.path.join(noir_run_dir, 'Nargo.toml'))
 
 
 class AudioUploadAPI(Resource):
@@ -53,9 +68,6 @@ class AudioUploadAPI(Resource):
         try:
             left_indices = [int(x) for x in left_indices_str.split()]
             print('Parsed left indices: ', left_indices)
-            if len(left_indices) % 2 != 0:
-                raise ValueError(
-                    "Number of left indices must be multiple of 2")
         except ValueError:
             return {'message': 'Invalid left indices'}, 400
 
@@ -68,10 +80,37 @@ class AudioUploadAPI(Resource):
         except ValueError:
             return {'message': 'Invalid base64 list'}, 400
 
+        if len(left_indices) != len(bucket_datas):
+            return {'message': 'Left indices and bucket datas must be the same length'}, 400
+
         signature_str = body_parameters.get('signature', '')
         if not signature_str.startswith('0x') or len(signature_str) != 66 or not re.fullmatch(r'0x[0-9a-fA-F]*', signature_str):
             return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
         print('Parsed signature: ', signature_str)
+
+        # TODO: we need to call into rado function and return the edited audio + proof
+        bleeps_spec = f"""{bucket_size}
+{left_indices_str}
+{bucket_datas_str}
+"""
+        print(bleeps_spec)
+
+        with open(bleeps_spec_filename, 'w') as file:
+            file.write(bleeps_spec)
+
+        res = subprocess.check_output(
+            [
+                os.path.join(noir_transform_audio_dir, "setup_custom.py"), 
+                '--input_wav', filename,
+                '--output_wav', 'out.wav',
+                '--bleeps_spec', bleeps_spec_filename,
+                '--prover_toml_path', 'NewProver.toml',
+                '--proof_output', 'lol_proof.proof'
+            ], 
+            cwd=noir_run_dir
+        )
+
+        print(res)
 
         return {'message': 'Audio file uploaded successfully', 'edited_audio': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz', 'proof': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz'}, 201
 

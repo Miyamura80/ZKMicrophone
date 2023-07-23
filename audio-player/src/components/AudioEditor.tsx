@@ -127,20 +127,20 @@ function WaveAudio(props: { index: number; audioFile: File }) {
         }
         console.log("decodedData", decodedData);
 
-        const bucketSize = 100;
+        const chunkSizeBytes = 2;
+        const bucketSizeBytes = 1000;
         // might be off by one but w/e
-        const leftIndices = [
-            Math.floor(start * decodedData.length / bucketSize),
-            Math.floor(end * decodedData.length / bucketSize)
-        ];
-        const bucketDatas: string[] = [...Array(leftIndices[1] - leftIndices[0])].map(i => arrayBufferToBase64(new Uint8Array([...Array(bucketSize).fill(0)])));
+        const startIndex = Math.floor((start / (region as any).totalDuration) * chunkSizeBytes * decodedData.length / bucketSizeBytes);
+        const endIndex = Math.floor((end / (region as any).totalDuration) * chunkSizeBytes * decodedData.length / bucketSizeBytes);
+        const leftIndices = Array.from({length: endIndex - startIndex}, (_, i) => startIndex + i);
+        const bucketDatas: string[] = [...Array(endIndex - startIndex)].map(i => arrayBufferToBase64(new Uint8Array([...Array(bucketSizeBytes).fill(0)])));
 
         const formData = new FormData();
         formData.append("file", props.audioFile);
-        formData.append("bucket_size", `${bucketSize}`);
-        formData.append("left_indices", leftIndices.join(" "))
-        formData.append("signature", "0x0000000000000000000000000000000000000000000000000000000000000000")
-        formData.append("bucket_datas", bucketDatas.join(" "))
+        formData.append("bucket_size", `${bucketSizeBytes}`);
+        formData.append("left_indices", leftIndices.join(" "));
+        formData.append("signature", "0x0000000000000000000000000000000000000000000000000000000000000000");
+        formData.append("bucket_datas", bucketDatas.join(" "));
 
         axios.post('http://localhost:5000/api/audioUpload', formData)
             .then((response) => {
