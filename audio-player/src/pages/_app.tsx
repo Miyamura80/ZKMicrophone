@@ -12,36 +12,27 @@ import {
   polygon,
   optimism,
   arbitrum,
+  foundry, goerli,
   zora,
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
+import { config } from '../wagmi'
 
-const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, zora],
+const { chains, } = configureChains(
+  [mainnet, goerli, foundry],
   [
     alchemyProvider({ apiKey: process.env.ALCHEMY_ID ? process.env.ALCHEMY_ID : "" }),
     publicProvider()
   ]
 );
-const { connectors } = getDefaultWallets({
-  appName: 'TwinCircuits',
-  projectId: 'b45b212d204525704dde4bd05eee22aa',
-  chains
-});
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient
-})
 
 export default function GlobalStyleWrapper({ Component, pageProps }: AppProps) {
   return (
-    <WagmiConfig config={wagmiConfig}>
+    <WagmiConfig config={config}>
       <RainbowKitProvider chains={chains}>
         <Component {...pageProps} />
       </RainbowKitProvider>
     </WagmiConfig>
   );
-  return <Component {...pageProps} />
 }

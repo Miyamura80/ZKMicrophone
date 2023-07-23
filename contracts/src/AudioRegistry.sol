@@ -35,7 +35,12 @@ contract AudioRegistry is Ownable {
         emit MicrophoneRegistered(micPublicKey);
     }
 
-    function verifyAudioTransform(bytes calldata proof, bytes32[] calldata publicInputs, bytes calldata signature, bytes32 ipfsCid) external {
+    function verifyAudioTransform(
+        bytes calldata proof,
+        bytes32[] calldata publicInputs,
+        bytes calldata signature,
+        bytes32 ipfsCid
+    ) external {
         // publicInputs == [hash_full, wav_weights, bleeps, edited_audio_hash_full]
         address micPublicKey = verifySignature(publicInputs[0], signature);
         require(registeredMicrophones[micPublicKey].publicKey != address(0), "AudioRegistry: key not registered");
@@ -50,24 +55,24 @@ contract AudioRegistry is Ownable {
         bytes32 r;
         bytes32 s;
         uint8 v;
- 
+
         // Check the signature length
         if (signature.length != 65) {
             revert("wrong signature length");
         }
- 
+
         // Divide the signature in r, s and v variables with inline assembly.
         assembly {
             r := mload(add(signature, 32))
             s := mload(add(signature, 64))
             v := byte(0, mload(add(signature, 96)))
         }
- 
+
         // Version of signature should be 27 or 28, but 0 and 1 are also possible versions
         if (v < 27) {
             v += 27;
         }
- 
+
         // If the version is correct return the signer address
         if (v != 27 && v != 28) {
             revert("version mismatch");
@@ -76,7 +81,7 @@ contract AudioRegistry is Ownable {
             return ecrecover(hash, v, r, s);
         }
     }
-    
+
     function audioExists(bytes32 audioHash) external view returns (bool) {
         return audioEntries[audioHash].publicKey != address(0);
     }
