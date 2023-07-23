@@ -12,6 +12,8 @@ FIELD_MOD = (
 BREAKER_FIELD_MOD = 147946756881789309620446562439722434560
 BASE = 257
 
+MAX_NOIR_BLEEPS = 250 
+
 """
 There is an issue with noir, not allowing integers > 2^128 as inputs, although
 fields should be to ~2^254. I'm doing the classing trick: Split the numbers as:
@@ -82,6 +84,11 @@ def setup_circuit(input_frames, output_frames, bucket_positions, inp_bleeps, ori
             wav_values.append(poly_hash_bytes(orig_buckets[pb])) 
             wav_weights.append(fast_pow_mod(BASE, pb * bucket_size))
             bleeps.append(poly_hash_bytes(bleep))
+
+        while len(bleeps) < MAX_NOIR_BLEEPS:
+            bleeps.append(0)
+            wav_values.append(0)
+            wav_weights.append(0)
        
         serial_wav_values_start, serial_wav_values_end = split_noir_field_array(wav_values)
         serial_wav_weights_start, serial_wav_weights_end = split_noir_field_array(wav_weights)
@@ -117,6 +124,7 @@ def solve_circuit(prover_toml_path, proof_output):
 
 
 def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
+    print("Editing...")
     with wave.open(input_wav, "rb") as wav_file:
         params = wav_file.getparams()
         frames = wav_file.readframes(params.nframes)
@@ -125,8 +133,9 @@ def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
         bucket_size = int(f.readline())
         positions = [int(x) for x in f.readline().split()]
         bleeps = [base64.b64decode(x) for x in f.readline().split()]
-
+        
         assert len(positions) == len(bleeps)
+        assert len(bleeps) <= MAX_NOIR_BLEEPS
         for pos, bleep_array in zip(positions, bleeps):
             assert pos * bucket_size < len(frames)
 
@@ -150,8 +159,13 @@ def work(input_wav, output_wav, bleeps_spec, prover_toml_path, proof_output):
         wav_file.setparams(params)
         wav_file.writeframes(edited_frames)
 
+    print("Setting up circuit...")
     setup_circuit(frames, edited_frames, positions, bleeps, buckets, bucket_size, prover_toml_path)
+    
+    print("Proving circuit...")
     solve_circuit(prover_toml_path, proof_output)
+
+    print("Done!")
 
 
 def main(args=None):

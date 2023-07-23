@@ -1,9 +1,9 @@
 // Competitive programming certainly helps :)))
-fn main(hash_full_start: pub Field, hash_full_end: pub Field, wav_values_start: [Field; 1], wav_values_end: [Field; 1], wav_weights_start: pub [Field; 1], wav_weights_end: pub [Field; 1], bleeps_start: pub [Field; 1], bleeps_end: pub [Field; 1], hash_sub_start: pub Field, hash_sub_end: pub Field) -> pub Field {
+fn main(hash_full_start: pub Field, hash_full_end: pub Field, wav_values_start: [Field; 250], wav_values_end: [Field; 250], wav_weights_start: pub [Field; 250], wav_weights_end: pub [Field; 250], bleeps_start: pub [Field; 250], bleeps_end: pub [Field; 250], hash_sub_start: pub Field, hash_sub_end: pub Field) -> pub Field {
 	let breaker_field: Field = 147946756881789309620446562439722434560;
 	let mut current_hash = hash_full_start + hash_full_end * breaker_field;
 
-	for i in 0..1 {
+	for i in 0..250 {
 		current_hash += (wav_weights_start[i] + breaker_field * wav_weights_end[i]) * ((bleeps_start[i] + breaker_field * bleeps_end[i]) - (wav_values_start[i] + breaker_field * wav_values_end[i]));
 	}
 
