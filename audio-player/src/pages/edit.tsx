@@ -1,6 +1,6 @@
 import { ChangeEvent, ChangeEventHandler, FormEvent, useState } from 'react';
 import Navbar from '../components/Navbar';
-import AudioEditor from '../components/AudioEditorNew';
+import AudioEditor from '../components/AudioEditor';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import IPFSCard from '@/components/IPFSCard';

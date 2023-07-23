@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 // import RecordPlugin from 'https://unpkg.com/wavesurfer.js@7/dist/plugins/record.esm.js'
 // import RecordPlugin from 'wavesurfer.js/dist/plugins/record.js';
-import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
+import RegionsPlugin, { Region } from 'wavesurfer.js/dist/plugins/regions.js';
 
 
 const AudioEditor = ({ audioFile }: { audioFile: File | null }) => {
@@ -22,11 +22,23 @@ const AudioEditor = ({ audioFile }: { audioFile: File | null }) => {
 
 let audioElements: any[] = [];
 
+function arrayBufferToBase64(buffer: Uint8Array) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+}
+
 function WaveAudio(props: { index: number; audioFile: File }) {
     // const waveAudioRef = useRef<WaveSurfer>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioContainerRef = useRef<HTMLDivElement>(null);
 
+    let waveform: WaveSurfer;
+    let wsRegions: RegionsPlugin;
 
     useEffect(() => {
         // const audioElement = document.querySelector(
@@ -34,7 +46,7 @@ function WaveAudio(props: { index: number; audioFile: File }) {
         // ) as HTMLElement;
         const audioElement = audioContainerRef.current;
         if (!audioElement) return;
-        const waveform = WaveSurfer.create({
+        waveform = WaveSurfer.create({
             container: audioElement,
             waveColor: "#363020",
             progressColor: "#4F759B",
@@ -57,7 +69,7 @@ function WaveAudio(props: { index: number; audioFile: File }) {
         // waveAudioRef.current = waveform;
 
         // Add bleep region
-        const wsRegions = waveform.registerPlugin(RegionsPlugin.create())
+        wsRegions = waveform.registerPlugin(RegionsPlugin.create())
 
         wsRegions.addRegion({
             start: 0.5,
@@ -104,12 +116,31 @@ function WaveAudio(props: { index: number; audioFile: File }) {
         // "edited_audio": "base 64 encoded string",
         // "proof": "base64 encoded string"
 
+        const regions: Region[] = wsRegions.getRegions();
+        console.log("regions", regions);
+        const region = regions[0]; // only support one region for now
+        const { start, end } = region;
+        const decodedData = waveform.getDecodedData();
+        if (!decodedData) {
+            console.log("no decoded data for waveform");
+            return;
+        }
+        console.log("decodedData", decodedData);
+
+        const bucketSize = 100;
+        // might be off by one but w/e
+        const leftIndices = [
+            Math.floor(start * decodedData.length / bucketSize),
+            Math.floor(end * decodedData.length / bucketSize)
+        ];
+        const bucketDatas: string[] = [...Array(leftIndices[1] - leftIndices[0])].map(i => arrayBufferToBase64(new Uint8Array([...Array(bucketSize).fill(0)])));
+
         const formData = new FormData();
         formData.append("file", props.audioFile);
-        formData.append("bucket_size", "123");
-        formData.append("left_indices", "1234 24 34 32")
+        formData.append("bucket_size", `${bucketSize}`);
+        formData.append("left_indices", leftIndices.join(" "))
         formData.append("signature", "0x0000000000000000000000000000000000000000000000000000000000000000")
-        formData.append("bucket_datas", "")
+        formData.append("bucket_datas", bucketDatas.join(" "))
 
         axios.post('http://localhost:5000/api/audioUpload', formData)
             .then((response) => {
