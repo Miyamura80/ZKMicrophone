@@ -53,9 +53,6 @@ class AudioUploadAPI(Resource):
         try:
             left_indices = [int(x) for x in left_indices_str.split()]
             print('Parsed left indices: ', left_indices)
-            if len(left_indices) % 2 != 0:
-                raise ValueError(
-                    "Number of left indices must be multiple of 2")
         except ValueError:
             return {'message': 'Invalid left indices'}, 400
 
@@ -68,10 +65,20 @@ class AudioUploadAPI(Resource):
         except ValueError:
             return {'message': 'Invalid base64 list'}, 400
 
+        if len(left_indices) != len(bucket_datas):
+            return {'message': 'Left indices and bucket datas must be the same length'}, 400
+
         signature_str = body_parameters.get('signature', '')
         if not signature_str.startswith('0x') or len(signature_str) != 66 or not re.fullmatch(r'0x[0-9a-fA-F]*', signature_str):
             return {'message': 'Invalid signature format. Must be length 64 hex string.'}, 400
         print('Parsed signature: ', signature_str)
+
+        # TODO: we need to call into rado function and return the edited audio + proof
+        spec = f"""{bucket_size}
+{left_indices_str}
+{bucket_datas_str}
+"""
+        print(spec)
 
         return {'message': 'Audio file uploaded successfully', 'edited_audio': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz', 'proof': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz'}, 201
 
