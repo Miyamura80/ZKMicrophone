@@ -1,0 +1,43 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins");
+
+body {
+  background-color: #131316;
+  color: #ffffff;
+  padding: 0;
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+button {
+  margin: 1em;
+  margin-top: 2em;
+  padding: 10px;
+  font-size: 15px;
+  background-color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+select {
+  padding: 10px;
+  font-size: 15px;
+  background-color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  border-radius: 10px;
+  margin-right: 2em;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+h1 {
+  margin-top: 2em;
+  margin-bottom: 3em;
+  color: #ffffff;
+}
+
+.App {
+  text-align: center;
+}
