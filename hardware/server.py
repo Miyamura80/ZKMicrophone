@@ -12,7 +12,7 @@ import toml
 
 app = Flask(__name__)
 # cors = CORS(app, resources={r'/*': {'origins': '*',
-                                    # 'methods': ['GET', 'POST', 'PUT', 'DELETE']}})
+# 'methods': ['GET', 'POST', 'PUT', 'DELETE']}})
 api = Api(app)
 
 home_dir = os.path.expanduser("~")
@@ -141,4 +141,4 @@ class AudioUploadAPI(Resource):
 api.add_resource(AudioUploadAPI, '/api/audioUpload')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

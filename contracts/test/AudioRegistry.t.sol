@@ -18,7 +18,7 @@ contract AudioRegistryTest is Test {
         audioRegistry.registerMicrophone(address(1));
     }
 
-    function test_EAS() public {
+    function test_EAS() public view {
         eas.attest(bytes32(0));
     }
 }
