@@ -1,4 +1,5 @@
 import os
+import base64
 import shutil
 import re
 import base64
@@ -31,6 +32,9 @@ circuits_dir = os.path.join(root_dir, 'circuits')
 noir_transform_audio_dir = os.path.join(circuits_dir, 'transform_audio')
 noir_main_path = os.path.join(noir_transform_audio_dir, 'src', 'main.nr')
 noir_nargo_path = os.path.join(noir_transform_audio_dir, 'Nargo.toml')
+
+noir_run_proof_output_path = os.path.join(noir_run_dir, 'audio_transform.proof')
+noir_run_edited_wav_output_path = os.path.join(noir_run_dir, 'out.wav')
 
 shutil.copy(noir_main_path, os.path.join(noir_run_src_dir, 'main.nr'))
 shutil.copy(noir_nargo_path, os.path.join(noir_run_dir, 'Nargo.toml'))
@@ -102,17 +106,27 @@ class AudioUploadAPI(Resource):
             [
                 os.path.join(noir_transform_audio_dir, "setup_custom.py"), 
                 '--input_wav', filepath,
-                '--output_wav', 'out.wav',
+                '--output_wav', noir_run_edited_wav_output_path,
                 '--bleeps_spec', bleeps_spec_filename,
-                '--prover_toml_path', 'NewProver.toml',
-                '--proof_output', 'lol_proof.proof'
+                '--prover_toml_path', 'Prover.toml',
+                '--proof_output', noir_run_proof_output_path
             ], 
             cwd=noir_run_dir
         )
 
-        print(res)
+        with open(noir_run_edited_wav_output_path, 'rb') as file:
+            edited_wav_binary = file.read()
+        with open(noir_run_proof_output_path, 'rb') as file:
+            proof_binary = file.read()
 
-        return {'message': 'Audio file uploaded successfully', 'edited_audio': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz', 'proof': 'VGhpcyBpcyAyMiBjaGFyYWN0ZXJz'}, 201
+        edited_wav_base64 = base64.b64encode(edited_wav_binary).decode('utf-8')
+        proof_base64 = base64.b64encode(proof_binary).decode('utf-8')
+
+        print(res)
+        print("Edited wav length: ", len(edited_wav_binary))
+        print("Proof length: ", len(proof_binary))
+
+        return {'message': 'Audio file uploaded successfully', 'edited_audio': edited_wav_base64, 'proof': proof_base64}, 201
 
     def allowed_file(self, filename):
         return '.' in filename and \
