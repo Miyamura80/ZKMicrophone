@@ -129,7 +129,7 @@ hash_sub_end = \"{serial_hash_sub_end}\""""
 def solve_circuit(prover_toml_name, proof_output):
     import subprocess
 
-    out = subprocess.check_output(
+    subprocess.check_output(
         [
             "nargo",
             "prove",
@@ -138,9 +138,6 @@ def solve_circuit(prover_toml_name, proof_output):
     )
 
     shutil.copyfile(os.path.join("proofs", f"{prover_toml_name}.proof"), proof_output)
-
-    with open(proof_output, "wb") as f:
-        f.write(out)
 
 
 def verify_circuit(prover_toml_name):
