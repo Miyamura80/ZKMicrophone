@@ -101,7 +101,7 @@ class AudioUploadAPI(Resource):
         res = subprocess.check_output(
             [
                 os.path.join(noir_transform_audio_dir, "setup_custom.py"), 
-                '--input_wav', filename,
+                '--input_wav', filepath,
                 '--output_wav', 'out.wav',
                 '--bleeps_spec', bleeps_spec_filename,
                 '--prover_toml_path', 'NewProver.toml',
